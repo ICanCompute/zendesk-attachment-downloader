@@ -1,0 +1,68 @@
+#!/usr/bin/env python2.7
+
+import os
+import sys
+from downloadfiles import DownloadFiles
+from zendown import ZenDesk
+
+
+def main():
+    #if len(sys.argv) == 2:
+    #    ticket_id = sys.argv[1]
+    #else:
+    #    sys.stderr.write('Usage: {0} <ticket_id>\n'.format(__file__))
+    #    sys.exit(1)
+
+    zd = ZenDesk()
+    # Ensure our authentication is correct
+    zd.authenticate()
+
+    # Get list of tickets
+    #response = zd.search(query='status<solved assignee:{}'.format("me"))
+    response = zd.get_all_tickets()
+    
+    if response['count'] == 0:
+        # No tickets from which to get attachments
+        print("No tickets provided for attachment retrieval.")
+        return {}
+
+    for ticket in response['results']:
+        if ticket['result_type'] != 'ticket':
+            # This is not actually a ticket. Weird. Skip it.
+            continue
+
+        # Perform all attachment downloads
+        #attachments = zd.extract_file_information(ticket_id)
+        attachments = zd.extract_file_information(ticket['id'])
+	if attachments == None or len(attachments['attachments']) == 0:
+		continue
+       	print('Downloading attachments for %s' % (ticket['id']))
+	#print ticket
+	#print attachments
+
+	name = ticket["subject"]
+        description = ticket["description"]
+        date_recd = ticket["created_at"]
+	user = attachments["user"]
+	address = "https://" + zd.domain + "/agent/tickets/" + str(ticket['id'])
+	
+	print name
+	print description
+	print date_recd
+	print address
+	print user
+
+       	dl = DownloadFiles()
+       	download_directory = dl.download_files(zd.download_directory, attachments)
+
+    # Open the finder to display downloaded files
+    #print "\nFiles download to:\n{0}\n".format(download_directory)
+    #if zd.run_open:
+        #os.system('{0} "{1}"'.format(zd.open_program, download_directory))
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print
