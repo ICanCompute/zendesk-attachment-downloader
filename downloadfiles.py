@@ -18,7 +18,7 @@ class DownloadFiles(object):
                     ".rtf": "textutil -convert txt",
                     ".doc": "textutil -convert txt",
                     ".docx": "textutil -convert txt"}
-    extNoCd = {".rtf", ".doc", ".docx"}
+    extNoCd = [".rtf", ".doc", ".docx"]
 
     def filename_split(self, filename):
         """
