@@ -46,11 +46,11 @@ def main():
 	user = attachments["user"]
 	address = "https://" + zd.domain + "/agent/tickets/" + str(ticket['id'])
 	
-	print name
-	print description
-	print date_recd
-	print address
-	print user
+	#print name
+	#print description
+	#print date_recd
+	#print address
+	#print user
 
        	dl = DownloadFiles()
        	download_directory = dl.download_files(zd.download_directory, attachments)

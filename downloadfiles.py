@@ -147,7 +147,7 @@ class DownloadFiles(object):
 		"",
                 attachment_info["body"]
         ]
-	print pdf_lines
+	#print pdf_lines
 	with open(os.path.join(download_directory, "request.pdf"), "w") as req_file:
     		req_file.write('\n'.join(pdf_lines))
     		#req_file.write('\n'.join(pdf_lines))
