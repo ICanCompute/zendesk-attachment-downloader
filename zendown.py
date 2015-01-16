@@ -117,6 +117,8 @@ class ZenDesk(object):
 
         # Clean up org names so they don't have funny characters
         organization_name = re.sub(r"[^a-zA-Z_0-9]", "", organization_name)
+        subject = re.sub(r"[^a-zA-Z_0-9]", "_", subject)
+        assignee = re.sub(r"[^a-zA-Z_0-9]", "_", assignee)
         attachment_list = []
         for audit in ticket:
             time_created = audit['created_at']

@@ -18,7 +18,7 @@ class DownloadFiles(object):
                     ".rtf": "textutil -convert txt",
                     ".doc": "textutil -convert txt",
                     ".docx": "textutil -convert txt"}
-    extNoCd = [".rtf", ".doc", ".docx"]
+    extNoCd = {".rtf", ".doc", ".docx"}
 
     def filename_split(self, filename):
         """
@@ -148,8 +148,9 @@ class DownloadFiles(object):
                 attachment_info["body"]
         ]
 	#print pdf_lines
-	with open(os.path.join(download_directory, "request.pdf"), "w") as req_file:
+	with open(os.path.join(download_directory, "request"), "w") as req_file:
     		req_file.write('\n'.join(pdf_lines))
     		#req_file.write('\n'.join(pdf_lines))
-
+	os.system("python pytext2pdf.py {0}".format(os.path.join(download_directory,"request")))
+	os.remove(os.path.join(download_directory,"request"))
         return download_directory
