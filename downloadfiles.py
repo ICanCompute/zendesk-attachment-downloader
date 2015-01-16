@@ -3,22 +3,19 @@ import os
 import time
 import urllib
 import re
-
+import img2pdf
 
 class DownloadFiles(object):
     """Class which downloads and extracts files."""
-    extToCommand = {".tar.gz": "tar xzf",
-                    ".tgz": "tar xzf",
-                    ".tar.bz2": "tar xjf",
-                    ".tbz": "tar xjf",
-                    ".zip": "unzip",
-                    ".gz": "gunzip",
-                    ".bz2": "bunzip2",
-                    ".7z": "7z x",
-                    ".rtf": "textutil -convert txt",
-                    ".doc": "textutil -convert txt",
-                    ".docx": "textutil -convert txt"}
-    extNoCd = {".rtf", ".doc", ".docx"}
+    extToCommand = {
+                    ".rtf": "libreoffice --headless --convert-to pdf",
+                    ".doc": "libreoffice --headless --convert-to pdf",
+                    ".docx": "libreoffice --headless --convert-to pdf",
+		    ".xls": "libreoffice --headless --convert-to pdf",
+		    ".xlsx": "libreoffice --headless --convert-to pdf"
+    }
+    extNoCd = {}
+    #extNoCd = {".rtf", ".doc", ".docx"}
 
     def filename_split(self, filename):
         """
@@ -78,7 +75,7 @@ class DownloadFiles(object):
         prefix = ""
         if dir_name and not os.path.isdir(dir_name):
             os.makedirs(dir_name)
-            prefix = 'cd "{0}";'.format(dir_name)
+        prefix = 'cd "{0}";'.format(dir_name)
         os.system(prefix + command + ' "{0}"'.format(filename))
 
     def check_and_extract_files(self, download_directory, filename, local_filename, formatted_time):
@@ -108,7 +105,29 @@ class DownloadFiles(object):
             output += " into '{0}'".format(archive_folder)
         print output
 
-        self.maybe_create_dir_and_run_command(command, local_filename, archive_folder)
+        #self.maybe_create_dir_and_run_command(command, local_filename, archive_folder)
+        self.maybe_create_dir_and_run_command(command, local_filename, download_directory)
+
+    def get_images(self, download_directory):
+        """Get all images in download dir and convert to PDF using img2pdf"""
+	all_images = []
+        for file in os.listdir(download_directory):
+            if file.endswith(".jpeg") or file.endswith("jpg"):
+	        all_images.append(os.path.join(download_directory, file))
+
+	images_as_pdf=img2pdf.convert(all_images,dpi=200,x=0,y=0)
+	file = open(os.path.join(download_directory,"images.pdf"),"wb")
+	file.write(images_as_pdf)
+    
+    def merge_pdfs(self, download_directory, base_dir, subject):
+        """Merge all pdfs in download dir and delete other files"""
+	all_pdfs = os.path.join(download_directory, "request.pdf")
+	for file in os.listdir(download_directory):
+            if file.endswith(".pdf") and file != "request.pdf":
+		all_pdfs += " " + os.path.join(download_directory, file)
+	print all_pdfs
+
+	os.system("gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile={0}.pdf {1}".format(os.path.join(base_dir,subject), all_pdfs))
 
     def download_files(self, base_download_directory, attachment_info):
         """Download all the files provided in the attachments dictionary"""
@@ -151,6 +170,11 @@ class DownloadFiles(object):
 	with open(os.path.join(download_directory, "request"), "w") as req_file:
     		req_file.write('\n'.join(pdf_lines))
     		#req_file.write('\n'.join(pdf_lines))
-	os.system("python pytext2pdf.py {0}".format(os.path.join(download_directory,"request")))
+	os.system("python ~/zendesk-attachment-downloader/pytext2pdf.py {0}".format(os.path.join(download_directory,"request")))
+
+	self.get_images(download_directory)
+	self.merge_pdfs(download_directory, base_download_directory, attachment_info["name"])
+	
+	
 	os.remove(os.path.join(download_directory,"request"))
         return download_directory
